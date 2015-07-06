@@ -1,174 +1,163 @@
 package pkg_Axi4Driver;
-import pkg_Axi4Types::*;
+import  pkg_Axi4Types::*;
 
 class Axi4MasterDriver #(
-  parameter N = 1,
-  parameter I = 1
+  int unsigned N = 1,
+  int unsigned I = 1
 );
 
-  virtual AXI4 #(.N(N), .I(I)) intf;
+  virtual AXI4       #(.N(N), .I(I))   intf;
   mailbox #(.T(ABeat #(.N(N), .I(I)))) ARmbx;
-  mailbox #(.T(RBeat #(.N(N), .I(I)))) Rmbx;
+  mailbox #(.T(RBeat #(.N(N), .I(I)))) Rmbx ;
   mailbox #(.T(ABeat #(.N(N), .I(I)))) AWmbx;
-  mailbox #(.T(WBeat #(.N(N)))) Wmbx;
-  mailbox #(.T(BBeat #(.I(I)))) Bmbx;
+  mailbox #(.T(WBeat #(.N(N)       ))) Wmbx ;
+  mailbox #(.T(BBeat #(       .I(I)))) Bmbx ;
 
-  function new(
-    virtual AXI4 #(.N(N), .I(I)) intf, 
+  function new (
+    virtual AXI4       #(.N(N), .I(I))   intf,
     mailbox #(.T(ABeat #(.N(N), .I(I)))) ARmbx,
-    mailbox #(.T(RBeat #(.N(N), .I(I)))) Rmbx,
+    mailbox #(.T(RBeat #(.N(N), .I(I)))) Rmbx ,
     mailbox #(.T(ABeat #(.N(N), .I(I)))) AWmbx,
-    mailbox #(.T(WBeat #(.N(N)))) Wmbx,
-    mailbox #(.T(BBeat #(.I(I)))) Bmbx
+    mailbox #(.T(WBeat #(.N(N)       ))) Wmbx ,
+    mailbox #(.T(BBeat #(       .I(I)))) Bmbx
   );
     this.intf = intf;
     this.ARmbx = ARmbx;
-    this.Rmbx = Rmbx;
+    this.Rmbx  = Rmbx ;
     this.AWmbx = AWmbx;
-    this.Wmbx = Wmbx;
-    this.Bmbx = Bmbx;
-  endfunction
+    this.Wmbx  = Wmbx ;
+    this.Bmbx  = Bmbx ;
+  endfunction: new
 
-  task ARTransfer(
-    ref ABeat #(.N(N), .I(I))  ab
+  task ARTransfer (
+    ref ABeat #(.N(N), .I(I)) ab
   );
-    intf.ARVALID <= 1'b1;
-    intf.ARID <= ab.id;
-    intf.ARADDR <= ab.addr;
+    intf.ARVALID  <= 1'b1;
+    intf.ARID     <= ab.id;
+    intf.ARADDR   <= ab.addr;
     intf.ARREGION <= ab.region;
-    intf.ARLEN <= ab.len;
-    intf.ARSIZE <= ab.size;
-    intf.ARBURST <= ab.burst;
-    intf.ARLOCK <= ab.lock;
-    intf.ARCACHE <= ab.cache;
-    intf.ARPROT <= ab.prot;
-    intf.ARQOS <= ab.qos;
+    intf.ARLEN    <= ab.len;
+    intf.ARSIZE   <= ab.size;
+    intf.ARBURST  <= ab.burst;
+    intf.ARLOCK   <= ab.lock;
+    intf.ARCACHE  <= ab.cache;
+    intf.ARPROT   <= ab.prot;
+    intf.ARQOS    <= ab.qos;
     @(posedge intf.ACLK);
     while (!intf.ARREADY) @(posedge intf.ACLK);
     intf.ARVALID <= 1'b0;
-  endtask
+  endtask: ARTransfer
   
-  task RTransfer(
-    ref RBeat #(.N(N), .I(I))  rb
+  task RTransfer (
+    ref RBeat #(.N(N), .I(I)) rb
   );
     intf.RREADY <= 1'b1;
-    while(!intf.RVALID) @(posedge intf.ACLK);
-    rb.id = intf.RID;
+    while (!intf.RVALID) @(posedge intf.ACLK);
+    rb.id   = intf.RID  ;
     rb.data = intf.RDATA;
     rb.resp = intf.RRESP;
     rb.last = intf.RLAST;
     intf.RREADY <= 1'b0;
-  endtask
+  endtask: RTransfer
 
-  task AWTransfer(
+  task AWTransfer (
     ref ABeat #(.N(N), .I(I)) ab
   );
-    intf.AWVALID <= 1'b1;
-    intf.AWID <= ab.id;
-    intf.AWADDR <= ab.addr;
+    intf.AWVALID  <= 1'b1     ;
+    intf.AWID     <= ab.id    ;
+    intf.AWADDR   <= ab.addr  ;
     intf.AWREGION <= ab.region;
-    intf.AWLEN <= ab.len;
-    intf.AWSIZE <= ab.size;
-    intf.AWBURST <= ab.burst;
-    intf.AWLOCK <= ab.lock;
-    intf.AWCACHE <= ab.cache;
-    intf.AWPROT <= ab.prot;
-    intf.AWQOS <= ab.qos;
+    intf.AWLEN    <= ab.len   ;
+    intf.AWSIZE   <= ab.size  ;
+    intf.AWBURST  <= ab.burst ;
+    intf.AWLOCK   <= ab.lock  ;
+    intf.AWCACHE  <= ab.cache ;
+    intf.AWPROT   <= ab.prot  ;
+    intf.AWQOS    <= ab.qos   ;
     @(posedge intf.ACLK);
     while (!intf.AWREADY) @(posedge intf.ACLK);
     intf.AWVALID <= 1'b0;
-  endtask
+  endtask: AWTransfer
   
-  task WTransfer(
+  task WTransfer (
     ref WBeat #(.N(N)) wb
   );
-    intf.WVALID <= 1'b1;
-    intf.WDATA <= wb.data;
-    intf.WSTRB <= wb.strb;
-    intf.WLAST <= wb.last;
+    intf.WVALID   <= 1'b1;
+    intf.WDATA    <= wb.data;
+    intf.WSTRB    <= wb.strb;
+    intf.WLAST    <= wb.last;
     @(posedge intf.ACLK);
     while (!intf.WREADY) @(posedge intf.ACLK);
     intf.WVALID <= 1'b0;
-  endtask
+  endtask: WTransfer
   
-  task BTransfer(
+  task BTransfer (
     ref BBeat #(.I(I)) bb
   );
     intf.BREADY <= 1'b1;
     while(!intf.BVALID) @(posedge intf.ACLK);
-    bb.id = intf.BID;
+    bb.id   = intf.BID  ;
     bb.resp = intf.BRESP;
     intf.BREADY <= 1'b0;
-  endtask
+  endtask: BTransfer
   
   task ARLoop;
     ABeat #(.N(N), .I(I)) b;
     forever
-      if (intf.ARESETn)
-      begin
+      if (intf.ARESETn) begin
         ARmbx.get(b);
         ARTransfer(b);
-      end
-      else 
+      end else 
         @(posedge intf.ARESETn);
-  endtask
+  endtask: ARLoop
   
   task RLoop;
     RBeat #(.N(N), .I(I)) b;
     forever
-      if (intf.ARESETn)
-      begin
+      if (intf.ARESETn) begin
         b = new();
         RTransfer(b);
         Rmbx.put(b);
-      end
-      else
+      end else
         @(posedge intf.ARESETn);
-  endtask
+  endtask: RLoop
   
   task AWLoop;
     ABeat #(.N(N), .I(I)) b;
     forever
-      if (intf.ARESETn)
-      begin
+      if (intf.ARESETn) begin
         AWmbx.get(b);
         AWTransfer(b);
-      end
-      else
+      end else
         @(posedge intf.ARESETn);
-  endtask
+  endtask: AWLoop
   
   task WLoop;
     WBeat #(.N(N)) b;
     forever
-      if (intf.ARESETn)
-      begin
+      if (intf.ARESETn) begin
         Wmbx.get(b);
         WTransfer(b);
-      end
-      else
+      end else
         @(posedge intf.ARESETn);
-  endtask
+  endtask: WLoop
   
   task BLoop;
     BBeat #(.I(I)) b;
     forever
-      if (intf.ARESETn)
-      begin
+      if (intf.ARESETn) begin
         b = new();
         BTransfer(b);
         Bmbx.put(b);
-      end
-      else
+      end else
         @(posedge intf.ARESETn);
-  endtask
+  endtask: BLoop
   
   task ResetLoop;
     forever
     begin
     @(posedge intf.ACLK)
-      if (!intf.ARESETn)
-      begin
+      if (!intf.ARESETn) begin
         intf.ARID     <= {I{1'b0}};
         intf.ARADDR   <= 32'b0;
         intf.ARREGION <= 4'b0;
@@ -199,7 +188,7 @@ class Axi4MasterDriver #(
         intf.BREADY   <= 1'b0;
       end
     end
-  endtask
+  endtask: ResetLoop
 
   task Run;
     fork
@@ -210,87 +199,87 @@ class Axi4MasterDriver #(
       BLoop;
       ResetLoop;
     join
-  endtask
+  endtask: Run
 
-endclass
+endclass: Axi4MasterDriver
 
 class Axi4SlaveDriver #(
-  parameter N = 1,
-  parameter I = 1
+  int unsigned N = 1,
+  int unsigned I = 1
 );
-  virtual AXI4 #(.N(N), .I(I)) intf;
+  virtual AXI4       #(.N(N), .I(I))   intf;
   mailbox #(.T(ABeat #(.N(N), .I(I)))) ARmbx;
-  mailbox #(.T(RBeat #(.N(N), .I(I)))) Rmbx;
+  mailbox #(.T(RBeat #(.N(N), .I(I)))) Rmbx ;
   mailbox #(.T(ABeat #(.N(N), .I(I)))) AWmbx;
-  mailbox #(.T(WBeat #(.N(N)))) Wmbx;
-  mailbox #(.T(BBeat #(.I(I)))) Bmbx;
+  mailbox #(.T(WBeat #(.N(N)       ))) Wmbx ;
+  mailbox #(.T(BBeat #(       .I(I)))) Bmbx ;
   
   function new(
-    virtual AXI4 #(.N(N), .I(I)) intf, 
+    virtual AXI4       #(.N(N), .I(I))   intf, 
     mailbox #(.T(ABeat #(.N(N), .I(I)))) ARmbx,
-    mailbox #(.T(RBeat #(.N(N), .I(I)))) Rmbx,
+    mailbox #(.T(RBeat #(.N(N), .I(I)))) Rmbx ,
     mailbox #(.T(ABeat #(.N(N), .I(I)))) AWmbx,
-    mailbox #(.T(WBeat #(.N(N)))) Wmbx,
-    mailbox #(.T(BBeat #(.I(I)))) Bmbx
+    mailbox #(.T(WBeat #(.N(N)       ))) Wmbx ,
+    mailbox #(.T(BBeat #(       .I(I)))) Bmbx
   );
     this.intf = intf;
     this.ARmbx = ARmbx;
-    this.Rmbx = Rmbx;
+    this.Rmbx  = Rmbx ;
     this.AWmbx = AWmbx;
-    this.Wmbx = Wmbx;
-    this.Bmbx = Bmbx;
-  endfunction
+    this.Wmbx  = Wmbx ;
+    this.Bmbx  = Bmbx ;
+  endfunction: new
   
-  task ARTransfer(
+  task ARTransfer (
     ref ABeat #(.N(N), .I(I)) ab
   );
     intf.ARREADY <= 1'b1;
     while (!intf.ARVALID) @(posedge intf.ACLK);
-    ab.id = intf.ARID;
-    ab.addr = intf.ARADDR;
+    ab.id     = intf.ARID    ;
+    ab.addr   = intf.ARADDR  ;
     ab.region = intf.ARREGION;
-    ab.len = intf.ARLEN;
-    ab.size = intf.ARSIZE;
-    ab.burst = intf.ARBURST;
-    ab.lock = intf.ARLOCK;
-    ab.cache = intf.ARCACHE;
-    ab.prot = intf.ARPROT;
-    ab.qos = intf.ARQOS;
+    ab.len    = intf.ARLEN   ;
+    ab.size   = intf.ARSIZE  ;
+    ab.burst  = intf.ARBURST ;
+    ab.lock   = intf.ARLOCK  ;
+    ab.cache  = intf.ARCACHE ;
+    ab.prot   = intf.ARPROT  ;
+    ab.qos    = intf.ARQOS   ;
     intf.ARREADY <= 1'b0;
-  endtask
+  endtask: ARTransfer
   
-  task RTransfer(
+  task RTransfer (
     ref RBeat #(.N(N), .I(I))  rb
   );
     intf.RVALID <= 1'b1;
-    intf.RID <= rb.id;
-    intf.RDATA <= rb.data;
-    intf.RRESP <= rb.resp;
-    intf.RLAST <= rb.last;
+    intf.RID    <= rb.id;
+    intf.RDATA  <= rb.data;
+    intf.RRESP  <= rb.resp;
+    intf.RLAST  <= rb.last;
     @(posedge intf.ACLK);
     while(!intf.RREADY) @(posedge intf.ACLK);
     intf.RVALID <= 1'b0;
-  endtask
+  endtask: RTransfer
 
-  task AWTransfer(
+  task AWTransfer (
     ref ABeat #(.N(N), .I(I)) ab
   );
     intf.AWREADY <= 1'b1;
     while (!intf.AWVALID) @(posedge intf.ACLK);
-    ab.id = intf.AWID;
-    ab.addr = intf.AWADDR;
+    ab.id     = intf.AWID    ;
+    ab.addr   = intf.AWADDR  ;
     ab.region = intf.AWREGION;
-    ab.len = intf.AWLEN;
-    ab.size = intf.AWSIZE;
-    ab.burst = intf.AWBURST;
-    ab.lock = intf.AWLOCK;
-    ab.cache = intf.AWCACHE;
-    ab.prot = intf.AWPROT;
-    ab.qos = intf.AWQOS;
+    ab.len    = intf.AWLEN   ;
+    ab.size   = intf.AWSIZE  ;
+    ab.burst  = intf.AWBURST ;
+    ab.lock   = intf.AWLOCK  ;
+    ab.cache  = intf.AWCACHE ;
+    ab.prot   = intf.AWPROT  ;
+    ab.qos    = intf.AWQOS   ;
     intf.AWREADY <= 1'b0;
-  endtask
+  endtask: AWTransfer
   
-  task WTransfer(
+  task WTransfer (
     ref WBeat #(.N(N)) wb
   );
     intf.WREADY <= 1'b1;
@@ -299,81 +288,71 @@ class Axi4SlaveDriver #(
     wb.strb = intf.WSTRB;
     wb.last = intf.WLAST;
     intf.WREADY <= 1'b0;
-  endtask
+  endtask: WTransfer
   
-  task BTransfer(
+  task BTransfer (
     ref BBeat #(.I(I)) bb
   );
     intf.BVALID <= 1'b1;
-    intf.BID <= bb.id;
-    intf.BRESP <= bb.resp;
+    intf.BID    <= bb.id;
+    intf.BRESP  <= bb.resp;
     @(posedge intf.ACLK);
     while(!intf.BREADY) @(posedge intf.ACLK);
     intf.BVALID <= 1'b0;
-  endtask
+  endtask: BTransfer
 
   task ARLoop;
     ABeat #(.N(N), .I(I)) b;
     forever
-      if (intf.ARESETn)
-      begin
+      if (intf.ARESETn) begin
         b = new();
         ARTransfer(b);
         ARmbx.put(b);
-      end
-      else
+      end else
         @(posedge intf.ARESETn);
-  endtask
+  endtask: ARLoop
   
   task RLoop;
     RBeat #(.N(N), .I(I)) b;
     forever
-      if (intf.ARESETn)
-      begin
+      if (intf.ARESETn) begin
         Rmbx.get(b);
         RTransfer(b);
-      end
-      else
+      end else
         @(posedge intf.ARESETn);
-  endtask
+  endtask: RLoop
   
   task AWLoop;
     ABeat #(.N(N), .I(I)) b;
     forever
-      if (intf.ARESETn)
-      begin
+      if (intf.ARESETn) begin
         b = new();
         AWTransfer(b);
         AWmbx.put(b);
-      end
-      else
+      end else
         @(posedge intf.ARESETn);
-  endtask
+  endtask: AWLoop
   
   task WLoop;
     WBeat #(.N(N)) b;
     forever
-      if (intf.ARESETn)
-      begin
+      if (intf.ARESETn) begin
         b = new();
         WTransfer(b);
         Wmbx.put(b);
-      end
-      else 
+      end else 
         @(posedge intf.ARESETn);
-  endtask
+  endtask: WLoop
   
   task BLoop;
     BBeat #(.I(I)) b;
     forever
-      if (intf.ARESETn)
-      begin
+      if (intf.ARESETn) begin
         Bmbx.get(b);
         BTransfer(b);
-      end
-      else
+      end else
         @(posedge intf.ARESETn);
-  endtask
+  endtask: BLoop
 
   task ResetLoop;
     forever
@@ -394,7 +373,7 @@ class Axi4SlaveDriver #(
         intf.BVALID   <= 1'b0;
       end
     end
-  endtask
+  endtask: ResetLoop
 
   task Run;
     fork
@@ -405,9 +384,8 @@ class Axi4SlaveDriver #(
       BLoop;
       ResetLoop;
     join
-  endtask
+  endtask: Run
   
-endclass
+endclass: Axi4SlaveDriver
 
-endpackage : pkg_Axi4Driver
-
+endpackage: pkg_Axi4Driver

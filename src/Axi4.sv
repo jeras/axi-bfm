@@ -1,134 +1,134 @@
 module Axi4Master #(
-  parameter N = 1,
-  parameter I = 1
+  int unsigned N = 1,
+  int unsigned I = 1
 )(
   AXI4 intf
-  );
-typedef struct packed
-{
-  bit [I-1:0] id;
-  bit [31:0] addr;
-  bit [3:0] region;
-  bit [7:0] len;
-  bit [2:0] size;
-  bit [1:0] burst;
-  bit lock;
-  bit [3:0] cache;
-  bit [2:0] prot;
-  bit [3:0] qos;
+);
+
+typedef struct packed {
+  bit   [I-1:0] id    ;
+  bit  [32-1:0] addr  ;
+  bit   [4-1:0] region;
+  bit   [8-1:0] len   ;
+  bit   [3-1:0] size  ;
+  bit   [2-1:0] burst ;
+  bit           lock  ;
+  bit   [4-1:0] cache ;
+  bit   [3-1:0] prot  ;
+  bit   [4-1:0] qos   ;
 } ABeat;
-typedef struct packed
-{
-  bit [I-1:0]  id;
-  bit [1:0]    resp;  
+
+typedef struct packed {
+  bit   [I-1:0] id    ;
+  bit   [2-1:0] resp  ;  
 } BBeat;
-typedef struct packed
-{
-  bit [I-1:0]    id;
-  bit [8*N-1:0]  data;
-  bit [1:0]      resp;
-  bit            last;
-} RBeat;
-typedef struct packed
-{
+
+typedef struct packed {
+  bit   [I-1:0] id   ;
   bit [8*N-1:0] data;
-  bit [N-1:0]   strb;
+  bit   [2-1:0] resp;
+  bit           last;
+} RBeat;
+
+typedef struct packed {
+  bit [8*N-1:0] data;
+  bit   [N-1:0] strb;
   bit           last;
 } WBeat;
 
   int AWDelay;
-  int WDelay;
-  int BDelay;
+  int WDelay ;
+  int BDelay ;
   int ARDelay;
-  int RDelay;
+  int RDelay ;
   
   ABeat AR_Q[$];
-  RBeat R_Q[$];
+  RBeat  R_Q[$];
   ABeat AW_Q[$];
-  WBeat W_Q[$];
-  BBeat B_Q[$];
+  WBeat  W_Q[$];
+  BBeat  B_Q[$];
   
-  task ARTransfer(
+  task ARTransfer (
     input int     delay,
     input ABeat   ab
   );
-    for(int i=0; i<delay; i++) @(posedge intf.ACLK);
-    intf.ARVALID <= 1'b1;
-    intf.ARID <= ab.id;
-    intf.ARADDR <= ab.addr;
+    for (int i=0; i<delay; i++) @(posedge intf.ACLK);
+    intf.ARVALID  <= 1'b1;
+    intf.ARID     <= ab.id    ;
+    intf.ARADDR   <= ab.addr  ;
     intf.ARREGION <= ab.region;
-    intf.ARLEN <= ab.len;
-    intf.ARSIZE <= ab.size;
-    intf.ARBURST <= ab.burst;
-    intf.ARLOCK <= ab.lock;
-    intf.ARCACHE <= ab.cache;
-    intf.ARPROT <= ab.prot;
-    intf.ARQOS <= ab.qos;
+    intf.ARLEN    <= ab.len   ;
+    intf.ARSIZE   <= ab.size  ;
+    intf.ARBURST  <= ab.burst ;
+    intf.ARLOCK   <= ab.lock  ;
+    intf.ARCACHE  <= ab.cache ;
+    intf.ARPROT   <= ab.prot  ;
+    intf.ARQOS    <= ab.qos   ;
     @(posedge intf.ACLK);
     while (!intf.ARREADY) @(posedge intf.ACLK);
-    intf.ARVALID <= 1'b0;
-  endtask
+    intf.ARVALID  <= 1'b0;
+  endtask: ARTransfer
   
-  task RTransfer(
+  task RTransfer (
     input int     delay,
     output RBeat  rb
   );
     for(int i=0; i<delay; i++) @(posedge intf.ACLK);
     intf.RREADY <= 1'b1;
     while(!intf.RVALID) @(posedge intf.ACLK);
-    rb.id = intf.RID;
+    rb.id   = intf.RID  ;
     rb.data = intf.RDATA;
     rb.resp = intf.RRESP;
     rb.last = intf.RLAST;
     intf.RREADY <= 1'b0;
-  endtask
+  endtask: RTransfer
 
-  task AWTransfer(
+  task AWTransfer (
     input int   delay,
     input ABeat ab
   );
-    for(int i=0; i<delay; i++) @(posedge intf.ACLK);
-    intf.AWVALID <= 1'b1;
-    intf.AWID <= ab.id;
-    intf.AWADDR <= ab.addr;
+    for (int i=0; i<delay; i++) @(posedge intf.ACLK);
+    intf.AWVALID  <= 1'b1;
+    intf.AWID     <= ab.id    ;
+    intf.AWADDR   <= ab.addr  ;
     intf.AWREGION <= ab.region;
-    intf.AWLEN <= ab.len;
-    intf.AWSIZE <= ab.size;
-    intf.AWBURST <= ab.burst;
-    intf.AWLOCK <= ab.lock;
-    intf.AWCACHE <= ab.cache;
-    intf.AWPROT <= ab.prot;
-    intf.AWQOS <= ab.qos;
+    intf.AWLEN    <= ab.len   ;
+    intf.AWSIZE   <= ab.size  ;
+    intf.AWBURST  <= ab.burst ;
+    intf.AWLOCK   <= ab.lock  ;
+    intf.AWCACHE  <= ab.cache ;
+    intf.AWPROT   <= ab.prot  ;
+    intf.AWQOS    <= ab.qos   ;
     @(posedge intf.ACLK);
     while (!intf.AWREADY) @(posedge intf.ACLK);
-    intf.AWVALID <= 1'b0;
-  endtask
+    intf.AWVALID  <= 1'b0;
+  endtask: AWTransfer
   
-  task WTransfer(
+  task WTransfer (
     input int   delay,
     input WBeat wb
   );
-    for(int i=0; i<delay; i++) @(posedge intf.ACLK);
+    for (int i=0; i<delay; i++) @(posedge intf.ACLK);
     intf.WVALID <= 1'b1;
-    intf.WDATA <= wb.data;
-    intf.WSTRB <= wb.strb;
-    intf.WLAST <= wb.last;
+    intf.WDATA  <= wb.data;
+    intf.WSTRB  <= wb.strb;
+    intf.WLAST  <= wb.last;
     @(posedge intf.ACLK);
     while (!intf.WREADY) @(posedge intf.ACLK);
     intf.WVALID <= 1'b0;
-  endtask
+  endtask: WTransfer
   
-  task BTransfer(
+  task BTransfer (
     input int    delay,
     output BBeat bb
   );
     for(int i=0; i<delay; i++) @(posedge intf.ACLK);
     intf.BREADY <= 1'b1;
     while(!intf.BVALID) @(posedge intf.ACLK);
-    bb.id = intf.BID;
+    bb.id   = intf.BID  ;
     bb.resp = intf.BRESP;
     intf.BREADY <= 1'b0;
-  endtask
+  endtask: BTransfer
   
   task ARLoop;
     ABeat b;
@@ -137,7 +137,7 @@ typedef struct packed
       b = AR_Q.pop_back();
       ARTransfer(ARDelay, b);
     end
-  endtask
+  endtask: ARLoop
   
   task RLoop;
     RBeat b;
@@ -146,7 +146,7 @@ typedef struct packed
       RTransfer(RDelay, b);
       R_Q.push_back(b);
     end
-  endtask
+  endtask: RLoop
 
   task AWLoop;
     ABeat b;
@@ -155,7 +155,7 @@ typedef struct packed
       b = AW_Q.pop_back();
       AWTransfer(AWDelay, b);
     end
-  endtask
+  endtask: AWLoop
   
   task WLoop;
     WBeat b;
@@ -164,7 +164,7 @@ typedef struct packed
       b = W_Q.pop_back();
       WTransfer(WDelay, b);
     end
-  endtask
+  endtask: WLoop
   
   task BLoop;
     BBeat b;
@@ -173,7 +173,7 @@ typedef struct packed
       BTransfer(BDelay, b);
       B_Q.push_back(b);
     end
-  endtask
+  endtask: BLoop
   
   task Run;
     fork
@@ -183,78 +183,76 @@ typedef struct packed
       WLoop;
       BLoop;
     join
-  endtask
+  endtask: Run
   
-  task RBurst(
-    input [I-1:0] id,
-    input         len,
-    inout byte    data[],
-    inout bit [2:0] resp[]
+  task RBurst (
+    input     [I-1:0] id,
+    input int         len,
+    inout byte        data[],
+    inout bit [3-1:0] resp[]
   );
-    bit [I-1:0] id_t;
-    bit [255:0][N-1:0][7:0] data_t;
-    bit [1:0] resp_t;
-    bit last_t;
+    bit        [I-1:0]        id_t;
+    bit [255:0][N-1:0][8-1:0] data_t;
+    bit        [2-1:0]        resp_t;
+    bit                       last_t;
     int j=0;
-    for (int i=0; i<256; i++)
-    begin
+    for (int i=0; i<256; i++) begin
 //      RTransfer(0, id_t, data_t[j], resp_t, last_t);
-      if (id_t == id)
-      begin
+      if (id_t == id) begin
         j++;
         if (last_t)
         
         break;
       end
     end
-  endtask
-  task WBurst(
+  endtask: RBurst
+
+  task WBurst (
     input int   len,
     input byte  data[],
     input bit   strb[]
   );
     bit [N-1:0][7:0] data_t;
-    bit [N-1:0] strb_t;
-    bit last_t;
-    for(int i=0; i<len; i++)
-    begin
-      for(int j=0; j<N; j++)
-      begin
+    bit [N-1:0]      strb_t;
+    bit              last_t;
+    for (int i=0; i<len; i++) begin
+      for (int j=0; j<N; j++) begin
         data_t[j] = data[N*i+j];
         strb_t[j] = strb[N*i+j];
       end
       last_t = (i == (len -1));
 //      WTransfer(0, data_t, strb_t, last_t);
     end
-  endtask
+  endtask: WBurst
   
 /*  
   task ReadTransaction (
-    input [31:0] addr,
-    input [2:0] prot,
-    output [63:0] data,
-    output [2:0] resp);
+    input  bit [32-1:0] addr,
+    input  bit  [3-1:0] prot,
+    output bit [64-1:0] data,
+    output bit  [3-1:0] resp
+  );
     ARTransaction(ARDelay, addr, prot);
     RTransaction(RDelay, data, resp);
-  endtask
+  endtask: ReadTransaction
   
   task WriteTransaction (
-    input [31:0] addr,
-    input [2:0] prot,
-    input [63:0] data,
-    input [7:0] strb,
-    output [1:0] resp);
+    input  bit [32-1:0] addr,
+    input  bit  [3-1:0] prot,
+    input  bit [64-1:0] data,
+    input  bit  [8-1:0] strb,
+    output bit  [2-1:0] resp
+  );
     fork
       AWTransaction(AWDelay, addr, prot);
       WTransaction(WDelay, data, strb);
     join
     BTransaction(BDelay, resp);
-  endtask
+  endtask: WriteTransaction
 */  
   always @(negedge intf.ARESETn or posedge intf.ACLK)
   begin
-    if (!intf.ARESETn)
-    begin
+    if (!intf.ARESETn) begin
       intf.ARID     <= {I{1'b0}};
       intf.ARADDR   <= 32'b0;
       intf.ARREGION <= 4'b0;
@@ -288,161 +286,160 @@ typedef struct packed
 endmodule: Axi4Master
 
 module Axi4Slave#(
-  parameter N = 1,
-  parameter I = 1
+  int unsigned N = 1,
+  int unsigned I = 1
 )(
   AXI4 intf
-  );
+);
   int AWDelay;
-  int WDelay;
-  int BDelay;
+  int WDelay ;
+  int BDelay ;
   int ARDelay;
-  int RDelay;
+  int RDelay ;
   
-  task ARTransfer(
-    input int       delay,
-    output [I-1:0]  id,
-    output [31:0]   addr,
-    output [3:0]    region,
-    output [7:0]    len,
-    output [2:0]    size,
-    output [1:0]    burst,
-    output          lock,
-    output [3:0]    cache,
-    output [2:0]    prot,
-    output [3:0]    qos
+  task ARTransfer (
+    input  int          delay,
+    output bit  [I-1:0] id    ,
+    output bit [32-1:0] addr  ,
+    output bit  [4-1:0] region,
+    output bit  [8-1:0] len   ,
+    output bit  [3-1:0] size  ,
+    output bit  [2-1:0] burst ,
+    output bit          lock  ,
+    output bit  [4-1:0] cache ,
+    output bit  [3-1:0] prot  ,
+    output bit  [4-1:0] qos
   );
-    for(int i=0; i<delay; i++) @(posedge intf.ACLK);
+    for (int i=0; i<delay; i++) @(posedge intf.ACLK);
     intf.ARREADY <= 1'b1;
     while (!intf.ARVALID) @(posedge intf.ACLK);
-    id = intf.ARID;
-    addr = intf.ARADDR;
+    id     = intf.ARID    ;
+    addr   = intf.ARADDR  ;
     region = intf.ARREGION;
-    len = intf.ARLEN;
-    size = intf.ARSIZE;
-    burst = intf.ARBURST;
-    lock = intf.ARLOCK;
-    cache = intf.ARCACHE;
-    prot = intf.ARPROT;
-    qos = intf.ARQOS;
+    len    = intf.ARLEN   ;
+    size   = intf.ARSIZE  ;
+    burst  = intf.ARBURST ;
+    lock   = intf.ARLOCK  ;
+    cache  = intf.ARCACHE ;
+    prot   = intf.ARPROT  ;
+    qos    = intf.ARQOS   ;
     intf.ARREADY <= 1'b0;
-  endtask
+  endtask: ARTransfer
   
-  task RTransfer(
-    input int       delay,
-    input [I-1:0]   id,
-    input [8*N-1:0] data,
-    input [2:0]     resp,
-    input           last
+  task RTransfer (
+    input  int           delay,
+    input  bit   [I-1:0] id  ,
+    input  bit [8*N-1:0] data,
+    input  bit   [3'1:0] resp,
+    input  bit           last
   );
-    for(int i=0; i<delay; i++) @(posedge intf.ACLK);
+    for (int i=0; i<delay; i++) @(posedge intf.ACLK);
     intf.RVALID <= 1'b1;
-    intf.RID <= id;
-    intf.RDATA <= data;
-    intf.RRESP <= resp;
-    intf.RLAST <= last;
+    intf.RID    <= id;
+    intf.RDATA  <= data;
+    intf.RRESP  <= resp;
+    intf.RLAST  <= last;
     @(posedge intf.ACLK);
     while(!intf.RREADY) @(posedge intf.ACLK);
     intf.RVALID <= 1'b0;
-  endtask
+  endtask: RTransfer
 
-  task AWTransfer(
-    input int       delay,
-    output [I-1:0]  id,
-    output [31:0]   addr,
-    output [3:0]    region,
-    output [7:0]    len,
-    output [2:0]    size,
-    output [1:0]    burst,
-    output          lock,
-    output [3:0]    cache,
-    output [2:0]    prot,
-    output [3:0]    qos
+  task AWTransfer (
+    input  int          delay,
+    output bit  [I-1:0] id    ,
+    output bit [32-1:0] addr  ,
+    output bit  [4-1:0] region,
+    output bit  [8-1:0] len   ,
+    output bit  [3-1:0] size  ,
+    output bit  [2-1:0] burst ,
+    output bit          lock  ,
+    output bit  [4-1:0] cache ,
+    output bit  [3-1:0] prot  ,
+    output bit  [4-1:0] qos
   );
-    for(int i=0; i<delay; i++) @(posedge intf.ACLK);
+    for (int i=0; i<delay; i++) @(posedge intf.ACLK);
     intf.AWREADY <= 1'b1;
     while (!intf.AWVALID) @(posedge intf.ACLK);
-    id = intf.AWID;
-    addr = intf.AWADDR;
+    id     = intf.AWID;
+    addr   = intf.AWADDR;
     region = intf.AWREGION;
-    len = intf.AWLEN;
-    size = intf.AWSIZE;
-    burst = intf.AWBURST;
-    lock = intf.AWLOCK;
-    cache = intf.AWCACHE;
-    prot = intf.AWPROT;
-    qos = intf.AWQOS;
+    len    = intf.AWLEN;
+    size   = intf.AWSIZE;
+    burst  = intf.AWBURST;
+    lock   = intf.AWLOCK;
+    cache  = intf.AWCACHE;
+    prot   = intf.AWPROT;
+    qos    = intf.AWQOS;
     intf.AWREADY <= 1'b0;
-  endtask
+  endtask: AWTransfer
   
-  task WTransaer(
-    input int         delay,
-    output [8*N-1:0]  data,
-    output [N-1:0]    strb,
-    output            last
+  task WTransaer (
+    input  int           delay,
+    output bit [8*N-1:0] data,
+    output bit   [N-1:0] strb,
+    output bit           last
   );
-    for(int i=0; i<delay; i++) @(posedge intf.ACLK);
+    for (int i=0; i<delay; i++) @(posedge intf.ACLK);
     intf.WREADY <= 1'b1;
     while (!intf.WVALID) @(posedge intf.ACLK);
     data = intf.WDATA;
     strb = intf.WSTRB;
     last = intf.WLAST;
     intf.WREADY <= 1'b0;
-  endtask
+  endtask: WTransaer
   
-  task BTransfer(
-    input int     delay,
-    input [I-1:0] id,
-    input [1:0]   resp
+  task BTransfer (
+    input  int         delay,
+    input  bit [I-1:0] id  ,
+    input  bit [2-1:0] resp
   );
-    for(int i=0; i<delay; i++) @(posedge intf.ACLK);
+    for (int i=0; i<delay; i++) @(posedge intf.ACLK);
     intf.BVALID <= 1'b1;
     intf.BID <= id;
     intf.BRESP <= resp;
     @(posedge intf.ACLK);
-    while(!intf.BREADY) @(posedge intf.ACLK);
+    while (!intf.BREADY) @(posedge intf.ACLK);
     intf.BVALID <= 1'b0;
-  endtask
+  endtask: BTransfer
 /*  
-  task ReadRequest(
-    output [31:0] addr,
-    output [2:0] prot
+  task ReadRequest (
+    output bit [32-1:0] addr,
+    output bit  [3-1:0] prot
   );
     ARTransaction(ARDelay, addr, prot);
-  endtask
+  endtask: ReadRequest
   
-  task ReadResponse(
-    input [31:0] data,
-    input [1:0] resp
+  task ReadResponse (
+    input  bit [32-1:0] data,
+    input  bit  [2-1:0] resp
   );
     RTransaction(RDelay, data, resp);
-  endtask
+  endtask: ReadResponse
   
-  task WriteRequest(
-    output [31:0] addr,
-    output [2:0] prot,
-    output [31:0] data,
-    output [3:0] strb
+  task WriteRequest (
+    output bit [32-1:0] addr,
+    output bit  [3-1:0] prot,
+    output bit [32-1:0] data,
+    output bit  [4-1:0] strb
   );
     fork
       AWTransaction(AWDelay, addr, prot);
       WTransaction(WDelay, data, strb);
     join
-  endtask
+  endtask: WriteRequest
   
-  task WriteResponse(
-    input [1:0] resp
+  task WriteResponse (
+    input  bit [2-1:0] resp
   );
     BTransaction(BDelay, resp);
-  endtask
+  endtask: WriteResponse
   
   task run;
-  endtask
+  endtask: run
 */  
   always @(negedge intf.ARESETn or posedge intf.ACLK)
   begin
-    if (!intf.ARESETn)
-    begin
+    if (!intf.ARESETn) begin
       intf.ARREADY  <= 1'b0;
       intf.RID      <= {I{1'b0}};
       intf.RDATA    <= {N{8'b0}};
@@ -459,12 +456,12 @@ module Axi4Slave#(
 endmodule: Axi4Slave
 
 module Axi4LiteMonitor#(
-  parameter N = 1,
-  parameter I = 1
+  int unsigned N = 1,
+  int unsigned I = 1
 )(
   AXI4Lite intf
-  );
+);
   task run;
-  endtask
+  endtask: run
   
 endmodule: Axi4LiteMonitor
